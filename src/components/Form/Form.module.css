@@ -1,19 +1,16 @@
-.form {
-  div {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    padding: 2rem;
-  }
+.form, div {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
 .form input:not(input[type="submit"]),
 select {
   background-color: transparent;
-  border: 2px solid var(--white);
+  border: .3rem solid var(--white);
   padding: 1rem;
   border-radius: 1rem;
-  font-size: 1.4rem;
+  font-size: 1.8rem;
   font-weight: 400;
   color: var(--white);
 }
@@ -34,5 +31,6 @@ input[type="submit"] {
   text-transform: uppercase;
   background-color: var(--primary);
   color: var(--white);
-  font-size: 2rem;
+  font-size: 1.4rem;
+  font-weight: 700;
 }
