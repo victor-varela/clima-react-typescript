@@ -4,7 +4,9 @@ import { getTemp } from "../helpers";
 import { useState } from "react";
 
 export default function useWeather() {
-  const [weather, setWeather] = useState<WeatherDisplay>();
+  const [weather, setWeather] = useState<WeatherDisplay | null>(null);
+  const [error, setError] = useState(false);
+  
 
   //recibe search de tipo SearchType por lo tanto ya es un Objeto, no necesita {}.
   const fetchWeather = async (search: SearchType) => {
@@ -29,6 +31,7 @@ export default function useWeather() {
         main: { feels_like, temp, temp_max, temp_min },
         weather,
       } = data;
+
       const weatherData: WeatherData = {
         feels_like,
         temp,
@@ -41,28 +44,21 @@ export default function useWeather() {
       const tempWeather = getTemp(weatherData);
       console.log(tempWeather);
 
+      setError(false)
       setWeather(tempWeather);
-      console.log(
-        "Actualmente: Temperatura:",
-        weather?.temp,
-        "Sensacion Termica:",
-        weather?.feels_like,
-        "Minima:",
-        weather?.temp_min,
-        "Maxima:",
-        weather?.temp_max,
-        "Esta:",
-        weather?.description
-      );
+     
       console.log(weather);
     } catch (error) {
       console.log(error);
+      setError(true)
+      setWeather(null)
     }
   };
 
   return {
     fetchWeather,
     weather,
+    error
   };
 }
 

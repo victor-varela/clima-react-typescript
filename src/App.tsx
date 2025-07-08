@@ -1,15 +1,21 @@
+import { useEffect } from "react";
 import styles from "./App.module.css";
 import Form from "./components/Form/Form";
 import Display from "./components/WeatherDisplay/Display";
 import useWeather from "./hooks/useWeather";
+import Error from "./components/Error/Error";
 function App() {
-  const { fetchWeather, weather } = useWeather();
+  const { fetchWeather, weather, error } = useWeather();
 
+  useEffect(() => {
+    console.log(error);
+  }, [error]);
   return (
     <>
       <h1 className={styles.title}>Buscador de Clima</h1>
       <div className={styles.container}>
         <Form fetchWeather={fetchWeather} />
+        {error && <Error/>}
         {weather && <Display weather={weather} />}
       </div>
     </>
