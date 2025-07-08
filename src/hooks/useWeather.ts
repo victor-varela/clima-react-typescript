@@ -1,8 +1,11 @@
 import axios from "axios";
-import type { SearchType, WeatherData } from "../types";
+import type { SearchType, WeatherData, WeatherDisplay } from "../types";
 import { getTemp } from "../helpers";
+import { useState } from "react";
 
 export default function useWeather() {
+  const [weather, setWeather] = useState<WeatherDisplay>();
+
   //recibe search de tipo SearchType por lo tanto ya es un Objeto, no necesita {}.
   const fetchWeather = async (search: SearchType) => {
     const apiKey = import.meta.env.VITE_API_KEY;
@@ -15,23 +18,43 @@ export default function useWeather() {
         search.country
       }&appid=${apiKey}`;
 
-      const { data } = await axios(geoUrl);
+      const res = await axios(geoUrl);
 
-      const lat = data[0].lat;
-      const lon = data[0].lon;
+      const lat = res.data[0].lat;
+      const lon = res.data[0].lon;
 
-      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}`;
-      const response = await axios(weatherUrl);
-      const weatherData:WeatherData = {
-        feels_like: response.data.main.feels_like,
-        temp: response.data.main.temp,
-        temp_max: response.data.main.temp_max,
-        temp_min:response.data.main.temp_min
-      }
-      
-      const weather = getTemp(weatherData)
-      console.log('Actualmente: Temperatura:', weather.temp, 'Sensacion Termica:', weather.feels_like, 'Minima:', weather.temp_min, 'Maxima:', weather.temp_max);
-      
+      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&lang=es`;
+      const { data } = await axios(weatherUrl);
+      const {
+        main: { feels_like, temp, temp_max, temp_min },
+        weather,
+      } = data;
+      const weatherData: WeatherData = {
+        feels_like,
+        temp,
+        temp_max,
+        temp_min,
+        description: weather[0].description,
+        icon: `https://openweathermap.org/img/wn/${weather[0].icon}@2x.png`,
+      }; //la clave del objeto y la variable tienen el mismo nombre, no hace falta asignarlos explicitamente
+
+      const tempWeather = getTemp(weatherData);
+      console.log(tempWeather);
+
+      setWeather(tempWeather);
+      console.log(
+        "Actualmente: Temperatura:",
+        weather?.temp,
+        "Sensacion Termica:",
+        weather?.feels_like,
+        "Minima:",
+        weather?.temp_min,
+        "Maxima:",
+        weather?.temp_max,
+        "Esta:",
+        weather?.description
+      );
+      console.log(weather);
     } catch (error) {
       console.log(error);
     }
@@ -39,6 +62,7 @@ export default function useWeather() {
 
   return {
     fetchWeather,
+    weather,
   };
 }
 
