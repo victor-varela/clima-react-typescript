@@ -1,12 +1,12 @@
 import axios from "axios";
-import type { SearchType, WeatherData, WeatherDisplay } from "../types";
+import { z } from "zod";
+import type { SearchType, WeatherData} from "../types";
 import { getTemp } from "../helpers";
 import { useState } from "react";
 
 export default function useWeather() {
-  const [weather, setWeather] = useState<WeatherDisplay | null>(null);
+  const [weatherSate, setWeather] = useState<WeatherData | null>(null);
   const [error, setError] = useState(false);
-  
 
   //recibe search de tipo SearchType por lo tanto ya es un Objeto, no necesita {}.
   const fetchWeather = async (search: SearchType) => {
@@ -14,6 +14,29 @@ export default function useWeather() {
 
     // encodeURIComponent(search.city) --> para enviar parametros por la URL. Reemplaza caraceteres especiales por otros que no afecten la consulta. Ej: 'las vegas' tiene un espacio y eso rompe la consulta, esta funcion lo reemplaza con otros caracteres que hace que la api las reconozca y devuelva el resultado
     //  console.log('encode',search.city, encodeURI(search.city));
+
+    //Zod
+    //1.Creamos el schema fijandonos la estructura de la api.
+
+    //Le estás diciendo a Zod:
+
+    // “weather es un array de objetos, y cada objeto tiene una propiedad description de tipo string y una icon de tipo string.”
+
+    // No importa si la API siempre devuelve un solo elemento en el array. El esquema dice: “esto puede tener uno o más objetos con esta forma.”
+
+    const Weather = z.object({
+      main: z.object({
+        temp: z.number(),
+        temp_max: z.number(),
+        temp_min: z.number(),
+      }),
+      weather: z.array(
+        z.object({
+          description: z.string(),
+          icon: z.string(),
+        })
+      ),
+    });
 
     try {
       const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(search.city)},${
@@ -27,38 +50,47 @@ export default function useWeather() {
 
       const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&lang=es`;
       const { data } = await axios(weatherUrl);
-      const {
-        main: { feels_like, temp, temp_max, temp_min },
-        weather,
-      } = data;
+      const result = Weather.safeParse(data); //zod .safeParse()
+    
 
-      const weatherData: WeatherData = {
-        feels_like,
-        temp,
-        temp_max,
-        temp_min,
-        description: weather[0].description,
-        icon: `https://openweathermap.org/img/wn/${weather[0].icon}@2x.png`,
-      }; //la clave del objeto y la variable tienen el mismo nombre, no hace falta asignarlos explicitamente
 
-      const tempWeather = getTemp(weatherData);
-      console.log(tempWeather);
+      //Poder hacer esta comprobacion (este if) es la RAZON para usar Zod. Si no cumple entonces tenemos oportunidad de MANEJAR el error --> enviar una alerta o lo que sea y la App sigue FUNCIONANDO.
+      if (!result.success) {
+        console.log("error");
+        return;
+      } else {
+        const {
+          main: { temp, temp_max, temp_min },
+          weather,
+        } = result.data;
 
-      setError(false)
-      setWeather(tempWeather);
-     
-      console.log(weather);
+        const { description, icon } = weather[0];
+
+        const weatherData: WeatherData = {
+          temp,
+          temp_max,
+          temp_min,
+          description,
+          icon:`https://openweathermap.org/img/wn/${icon}@2x.png`
+        }; //la clave del objeto y la variable tienen el mismo nombre, no hace falta asignarlos explicitamente
+
+        const tempWeather = getTemp(weatherData);
+        
+        setError(false);
+        setWeather(tempWeather);
+        
+      }
     } catch (error) {
       console.log(error);
-      setError(true)
-      setWeather(null)
+      setError(true);
+      setWeather(null);
     }
   };
 
   return {
     fetchWeather,
-    weather,
-    error
+    weatherSate,
+    error,
   };
 }
 
@@ -72,4 +104,51 @@ export default function useWeather() {
     - Lo que nos interesa de la respuesta de la API es el campo 'data' por eso hacemos destructuring con ese mismo nombre, asi accedemos directamente.
 
 
+    
+  DILEMA DEL TIPADO DE RESPUESTAS DE API EN TS:
+
+  - Cuando se consume una API, la respuesta viene como `any`. 
+    TypeScript no puede inferir automáticamente su estructura.
+
+  - Hay varias técnicas para tipar:
+
+    1. Genéricos (`<MyType>`): práctica común y cómoda. No valida datos reales, 
+       útil cuando la API es confiable y estable.
+
+    2. Type Assertion (`as MyType`): forzás el tipo sin validación. Riesgoso. "SI CAMBIA LA ESTRUCTURA DE LA API VA A MARCAR UNDEFINED Y ROMPE LA APP"
+
+    3. Type Guards: validás manualmente campos clave. Más seguro, pero más código. "PASAS LA RESPUESTA DE LA API POR UNA COMPROBACION Y LUEGO IF(COMPROBACION) AHI MANEJAS LA RESPUESTA, ELSE MANEJAS EL ERROR. ESTO NO LO TIENES CON <MyType> VAS CIEGO.."
+
+    4. Librerías como Zod/Yup: validación en tiempo de ejecución (ESTO ES LA CLAVE). Requiere conocer 
+       la estructura igual, pero ofrece máxima seguridad. "SI CAMBIA LA ESTRUCTURA DE LA API TE VA AVISAR Y NO ROMPE LA APP"
+
+  - Elegir técnica según contexto:
+      * API confiable → Genérico
+      * API incierta o crítica → Zod / Type Guards
+      * 
+  
+    "La gran diferencia entre usar <MyType> y usar Zod no es qué tanto sabés de la respuesta, sino cuán seguro estás de que siempre será así."
+
+  - Conclusión: el tipado manual mejora la DX pero no asegura que los datos 
+    recibidos sean válidos. Validar en runtime es clave si el dato es sensible o externo.
+
+    😬 El problema de ambos enfoques (<MyType> y as MyType)
+No se valida nada en tiempo de ejecución.
+
+Si la API cambia (por ej., te devuelve description como null o elimina weather), tu app puede crashear sin advertencia.
+
+TypeScript no te protege contra datos corruptos o incompletos porque solo trabaja en tiempo de desarrollo.
+
+La diferencia clave: Zod valida en tiempo de ejecución.
+
+🔍 ¿Qué hace Zod?
+ts
+Copiar
+Editar
+const result = WeatherSchema.safeParse(response.data);
+Verifica que temp, feels_like, etc., existan.
+
+Verifica que sean del tipo correcto (número, string, etc).
+
+Si algo falta o está mal, te lo avisa antes de que tu app explote.
 */

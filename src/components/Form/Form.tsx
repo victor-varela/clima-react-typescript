@@ -1,5 +1,5 @@
 import styles from "./Form.module.css";
-import { countries } from "../../data";
+import { formatCountries } from "../../data";
 import { useState } from "react";
 import type { SearchType } from "../../types";
 import Alert from "../Alert/Alert";
@@ -51,7 +51,7 @@ const Form = ({ fetchWeather }: FormProps) => {
           <label htmlFor="countries">Pais:</label>
           <select id="countries" name="country" value={search.country} onChange={handleChange}>
             <option>--Seleccione un pais--</option>
-            {countries.map(country => (
+            {formatCountries.map(country => (
               <option value={country.code} key={country.code}>
                 {country.name}
               </option>

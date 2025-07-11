@@ -8,13 +8,14 @@ export type Country = {
   name: string;
 };
 
+  //Esto es util si la API es confiable pero NO protege contra cambios en la estructura de la API. Puede romper el codigo
+  // "La gran diferencia entre usar <MyType> y usar Zod no es qué tanto sabés de la respuesta, sino cuán seguro estás de que siempre será así."
 export type WeatherData = {
-  feels_like: number;
   temp: number;
   temp_max: number;
   temp_min: number;
-  description: string;
-  icon: string;
+  description: string,
+  icon: string
 };
 
 export type WeatherDisplay = {

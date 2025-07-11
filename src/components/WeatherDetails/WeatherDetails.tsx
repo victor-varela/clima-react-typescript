@@ -1,14 +1,13 @@
-import type { WeatherDisplay } from "../../types";
-import styles from "./Display.module.css";
+import type { WeatherData} from "../../types";
+import styles from "./WeatherDetails.module.css";
 
-const Display = ({ weather }: { weather: WeatherDisplay }) => {
-  console.log(weather);
+const WeatherDetails = ({ weather }: { weather: WeatherData }) => {
   
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>{weather.description}</h1>
       <div className={styles.container__main}>
-        <p className={styles.main__p}>{weather.feels_like}°C</p>
+        <p className={styles.main__p}>{weather.temp}°C</p>
       </div>
       <div className={styles.container__temp}>
         <p>
@@ -25,4 +24,4 @@ const Display = ({ weather }: { weather: WeatherDisplay }) => {
   );
 };
 
-export default Display;
+export default WeatherDetails;
