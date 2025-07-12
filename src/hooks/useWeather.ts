@@ -1,6 +1,6 @@
 import axios from "axios";
 import { z } from "zod";
-import type { SearchType, WeatherData} from "../types";
+import type { SearchType, WeatherData } from "../types";
 import { getTemp } from "../helpers";
 import { useState } from "react";
 
@@ -38,48 +38,61 @@ export default function useWeather() {
       ),
     });
 
+    //Creamos el schema de lat y lon. Son propiedades de tipo number dentro de un array. Eso lo ves logeando la respuesta ves que toda la respuesta es un objeto PERO, lo que quieres tipar, validar, es la propiedad data. data es un array de objetos. por eso el schema es un array de objeto.
+
+    const GeoSchema = z.array(
+      z.object({
+        lat: z.number(),
+        lon: z.number(),
+      })
+    );
+
     try {
       const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(search.city)},${
         search.country
       }&appid=${apiKey}`;
 
-      const res = await axios(geoUrl);
+      const res = await axios(geoUrl); // res es ANY, fijate el "schema" que devuelve te doy una pista, es un OBJETO jeje, y la propiedad data es un ARRAY de OBJETOS por lo tanto, el schema es un array y las propiedades lat y lon son number.
 
-      const lat = res.data[0].lat;
-      const lon = res.data[0].lon;
+      const parsedGeo = GeoSchema.safeParse(res.data); //es res.data porque ahi esta lo que queremos, no hice destructuring {data} porque tiene el mismo nombre que la siguiente llamada a la api
+
+      //Zod verifica que este correcto el schema, lat y lon son number. Hicimos todo eso para hacer el if success.
+
+      if (!parsedGeo.success) {
+        //si entra aca, no rompe la app--> esa es toda la ventaja de tanta comprobacion.
+        console.log("error", parsedGeo.error.message);
+        return;
+      }
+      const { lat, lon } = res.data[0];
 
       const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&lang=es`;
       const { data } = await axios(weatherUrl);
-      const result = Weather.safeParse(data); //zod .safeParse()
-    
-
+      const result = Weather.safeParse(data); //zod .safeParse()--> aca Zod verifica
 
       //Poder hacer esta comprobacion (este if) es la RAZON para usar Zod. Si no cumple entonces tenemos oportunidad de MANEJAR el error --> enviar una alerta o lo que sea y la App sigue FUNCIONANDO.
       if (!result.success) {
-        console.log("error");
+        console.log("error", result.error.message);
         return;
-      } else {
-        const {
-          main: { temp, temp_max, temp_min },
-          weather,
-        } = result.data;
-
-        const { description, icon } = weather[0];
-
-        const weatherData: WeatherData = {
-          temp,
-          temp_max,
-          temp_min,
-          description,
-          icon:`https://openweathermap.org/img/wn/${icon}@2x.png`
-        }; //la clave del objeto y la variable tienen el mismo nombre, no hace falta asignarlos explicitamente
-
-        const tempWeather = getTemp(weatherData);
-        
-        setError(false);
-        setWeather(tempWeather);
-        
       }
+      const {
+        main: { temp, temp_max, temp_min },
+        weather,
+      } = result.data;
+
+      const { description, icon } = weather[0];
+
+      const weatherData: WeatherData = {
+        temp,
+        temp_max,
+        temp_min,
+        description,
+        icon: `https://openweathermap.org/img/wn/${icon}@2x.png`,
+      }; //la clave del objeto y la variable tienen el mismo nombre, no hace falta asignarlos explicitamente
+
+      const tempWeather = getTemp(weatherData);
+
+      setError(false);
+      setWeather(tempWeather);
     } catch (error) {
       console.log(error);
       setError(true);
