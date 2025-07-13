@@ -34,7 +34,6 @@ const Form = ({ fetchWeather }: FormProps) => {
     }
 
     //Paso la validacion. Consultamos la API con el custom hook
-  
     fetchWeather(search);
   };
 

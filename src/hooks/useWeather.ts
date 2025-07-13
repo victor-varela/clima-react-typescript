@@ -1,51 +1,58 @@
 import axios from "axios";
 import { z } from "zod";
-import type { SearchType, WeatherData } from "../types";
+import type { SearchType } from "../types";
 import { getTemp } from "../helpers";
 import { useState } from "react";
 
+
+//Zod : zod va a INFERIR el type que genera el schema.
+//1.Creamos el schema fijandonos la estructura de la api.
+
+//Le estás diciendo a Zod:
+
+// “weather es un array de objetos, y cada objeto tiene una propiedad description de tipo string y una icon de tipo string.”
+
+// No importa si la API siempre devuelve un solo elemento en el array. El esquema dice: “esto puede tener uno o más objetos con esta forma.”
+
+const Weather = z.object({
+  main: z.object({
+    temp: z.number(),
+    temp_max: z.number(),
+    temp_min: z.number(),
+  }),
+  weather: z.array(
+    z.object({
+      description: z.string(),
+      icon: z.string(),
+    })
+  ),
+});
+
+//2. Creamos el type con el schema que ya hicimos. Sintaxis de zod. Este type lo usamos en el state de WeahtherState en lugar del WeatherData que hiciste en un principio ya que ahi el type esta 'casteado' no viene validado desde zod
+export type Weather = z.infer<typeof Weather>;
+
+//Creamos el schema de lat y lon. Son propiedades de tipo number dentro de un array. Eso lo ves logeando la respuesta ves que toda la respuesta es un objeto PERO, lo que quieres tipar, validar, es la propiedad data. data es un array de objetos. por eso el schema es un array de objeto.
+
+const GeoSchema = z.array(
+  z.object({
+    lat: z.number(),
+    lon: z.number(),
+  })
+);
+
 export default function useWeather() {
-  const [weatherSate, setWeather] = useState<WeatherData | null>(null);
+  const [weatherSate, setWeather] = useState<Weather | null>(null);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   //recibe search de tipo SearchType por lo tanto ya es un Objeto, no necesita {}.
   const fetchWeather = async (search: SearchType) => {
     const apiKey = import.meta.env.VITE_API_KEY;
-
+    setLoading(true);
+    setWeather(null);
+    setError(false);
     // encodeURIComponent(search.city) --> para enviar parametros por la URL. Reemplaza caraceteres especiales por otros que no afecten la consulta. Ej: 'las vegas' tiene un espacio y eso rompe la consulta, esta funcion lo reemplaza con otros caracteres que hace que la api las reconozca y devuelva el resultado
     //  console.log('encode',search.city, encodeURI(search.city));
-
-    //Zod
-    //1.Creamos el schema fijandonos la estructura de la api.
-
-    //Le estás diciendo a Zod:
-
-    // “weather es un array de objetos, y cada objeto tiene una propiedad description de tipo string y una icon de tipo string.”
-
-    // No importa si la API siempre devuelve un solo elemento en el array. El esquema dice: “esto puede tener uno o más objetos con esta forma.”
-
-    const Weather = z.object({
-      main: z.object({
-        temp: z.number(),
-        temp_max: z.number(),
-        temp_min: z.number(),
-      }),
-      weather: z.array(
-        z.object({
-          description: z.string(),
-          icon: z.string(),
-        })
-      ),
-    });
-
-    //Creamos el schema de lat y lon. Son propiedades de tipo number dentro de un array. Eso lo ves logeando la respuesta ves que toda la respuesta es un objeto PERO, lo que quieres tipar, validar, es la propiedad data. data es un array de objetos. por eso el schema es un array de objeto.
-
-    const GeoSchema = z.array(
-      z.object({
-        lat: z.number(),
-        lon: z.number(),
-      })
-    );
 
     try {
       const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(search.city)},${
@@ -81,22 +88,30 @@ export default function useWeather() {
 
       const { description, icon } = weather[0];
 
-      const weatherData: WeatherData = {
-        temp,
-        temp_max,
-        temp_min,
-        description,
-        icon: `https://openweathermap.org/img/wn/${icon}@2x.png`,
+      const weatherData: Weather = {
+        main: {
+          temp,
+          temp_max,
+          temp_min,
+        },
+        weather: [
+          {
+            description,
+            icon: `https://openweathermap.org/img/wn/${icon}@2x.png`,
+          },
+        ],
       }; //la clave del objeto y la variable tienen el mismo nombre, no hace falta asignarlos explicitamente
 
       const tempWeather = getTemp(weatherData);
 
-      setError(false);
       setWeather(tempWeather);
+      
     } catch (error) {
       console.log(error);
-      setError(true);
       setWeather(null);
+      setError(true);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,6 +119,7 @@ export default function useWeather() {
     fetchWeather,
     weatherSate,
     error,
+    loading,
   };
 }
 

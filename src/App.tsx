@@ -1,22 +1,20 @@
-import { useEffect } from "react";
 import styles from "./App.module.css";
 import Form from "./components/Form/Form";
 import useWeather from "./hooks/useWeather";
 import Error from "./components/Error/Error";
 import WeatherDetails from "./components/WeatherDetails/WeatherDetails";
+import { Spinner } from "./components/Spinner/Spinner";
 function App() {
-  const { fetchWeather, weatherSate, error } = useWeather();
+  const { fetchWeather, weatherSate, error, loading } = useWeather();
 
-  useEffect(() => {
-  
-  }, [error]);
   return (
     <>
       <h1 className={styles.title}>Buscador de Clima</h1>
       <div className={styles.container}>
         <Form fetchWeather={fetchWeather} />
-        {error && <Error/>}
+        {loading && <Spinner/>}
         {weatherSate && <WeatherDetails weather={weatherSate} />}
+        {error && <Error/>}
       </div>
     </>
   );
