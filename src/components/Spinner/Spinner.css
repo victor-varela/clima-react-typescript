@@ -2,8 +2,9 @@
 
 .spinner {
   margin: 100px auto 0;
-  width: 70px;
+  width: 100px;
   text-align: center;
+  flex-direction: row;
 }
 
 .spinner > div {
