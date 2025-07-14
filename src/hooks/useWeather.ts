@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { SearchType } from "../types";
 import { getTemp } from "../helpers";
 import { useState } from "react";
+import { tr } from "zod/locales";
 
 
 //Zod : zod va a INFERIR el type que genera el schema.
@@ -61,13 +62,20 @@ export default function useWeather() {
 
       const res = await axios(geoUrl); // res es ANY, fijate el "schema" que devuelve te doy una pista, es un OBJETO jeje, y la propiedad data es un ARRAY de OBJETOS por lo tanto, el schema es un array y las propiedades lat y lon son number.
 
+      // validación lógica: ciudad no encontrada
+      if(!res.data.length){
+         setError(true);
+         return
+      }
+
       const parsedGeo = GeoSchema.safeParse(res.data); //es res.data porque ahi esta lo que queremos, no hice destructuring {data} porque tiene el mismo nombre que la siguiente llamada a la api
 
       //Zod verifica que este correcto el schema, lat y lon son number. Hicimos todo eso para hacer el if success.
 
       if (!parsedGeo.success) {
-        //si entra aca, no rompe la app--> esa es toda la ventaja de tanta comprobacion.
+        //si entra aca, no rompe la app--> esa es toda la ventaja de tanta comprobacion.// validación estructural: datos mal formados
         console.log("error", parsedGeo.error.message);
+        setError(true)
         return;
       }
       const { lat, lon } = res.data[0];
@@ -102,14 +110,12 @@ export default function useWeather() {
         ],
       }; //la clave del objeto y la variable tienen el mismo nombre, no hace falta asignarlos explicitamente
 
-      const tempWeather = getTemp(weatherData);
+      // const tempWeather = getTemp(weatherData); refactor->
 
-      setWeather(tempWeather);
+      setWeather(getTemp(weatherData));
       
     } catch (error) {
       console.log(error);
-      setWeather(null);
-      setError(true);
     } finally {
       setLoading(false);
     }
@@ -180,4 +186,10 @@ Verifica que temp, feels_like, etc., existan.
 Verifica que sean del tipo correcto (número, string, etc).
 
 Si algo falta o está mal, te lo avisa antes de que tu app explote.
+
+// ⚠️ No esperes al catch para validar errores previsibles:
+// El bloque `catch` está pensado para errores inesperados (red, servidor caído, etc).
+// Usá validaciones antes (con Zod, por ejemplo) para detectar respuestas inválidas y evitar ejecutar código innecesario.
+// ✔️ Catch solo para fallos realmente imprevistos, no para controlar lógica del flujo.
+
 */
