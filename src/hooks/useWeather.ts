@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { SearchType } from "../types";
 import { getTemp } from "../helpers";
 import { useState } from "react";
-import { tr } from "zod/locales";
+
 
 
 //Zod : zod va a INFERIR el type que genera el schema.
