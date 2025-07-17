@@ -59,7 +59,7 @@ export default function useWeather() {
 const options = {
   method: 'GET',
   url: 'https://wft-geo-db.p.rapidapi.com/v1/geo/cities',
-  params: {countryIds: `${search.country}`},
+  params: {countryIds: `${search.country}`, limit:10, minPopulation: 500000, type: 'CITY', sort:'-population'},
   headers: {
     'x-rapidapi-key': 'da81a68529msh80b3f345aec3c13p18abfbjsnf8ada1240185',
     'x-rapidapi-host': 'wft-geo-db.p.rapidapi.com'
