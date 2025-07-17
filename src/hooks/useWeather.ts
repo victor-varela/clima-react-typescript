@@ -55,6 +55,26 @@ export default function useWeather() {
     // encodeURIComponent(search.city) --> para enviar parametros por la URL. Reemplaza caraceteres especiales por otros que no afecten la consulta. Ej: 'las vegas' tiene un espacio y eso rompe la consulta, esta funcion lo reemplaza con otros caracteres que hace que la api las reconozca y devuelva el resultado
     //  console.log('encode',search.city, encodeURI(search.city));
 
+// rapidAPI
+const options = {
+  method: 'GET',
+  url: 'https://wft-geo-db.p.rapidapi.com/v1/geo/cities',
+  params: {countryIds: `${search.country}`},
+  headers: {
+    'x-rapidapi-key': 'da81a68529msh80b3f345aec3c13p18abfbjsnf8ada1240185',
+    'x-rapidapi-host': 'wft-geo-db.p.rapidapi.com'
+  }
+};
+
+try {
+	const response = await axios.request(options);
+	console.log(response.data);
+} catch (error) {
+	console.error(error);
+}
+
+//RapidApi
+
     try {
       const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(search.city)},${
         search.country
