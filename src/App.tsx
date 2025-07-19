@@ -5,16 +5,16 @@ import Error from "./components/Error/Error";
 import WeatherDetails from "./components/WeatherDetails/WeatherDetails";
 import { Spinner } from "./components/Spinner/Spinner";
 function App() {
-  const { fetchWeather, weatherSate, error, loading } = useWeather();
+  const { fetchWeather, weatherSate, error, loading, cities } = useWeather();
 
   return (
     <>
       <h1 className={styles.title}>Buscador de Clima</h1>
       <div className={styles.container}>
-        <Form fetchWeather={fetchWeather} />
-        {loading && <Spinner/>}
+        <Form fetchWeather={fetchWeather} cities={cities} />
+        {loading && <Spinner />}
         {weatherSate && <WeatherDetails weather={weatherSate} />}
-        {error && <Error/>}
+        {error && <Error />}
       </div>
     </>
   );

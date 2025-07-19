@@ -1,14 +1,21 @@
 import styles from "./Form.module.css";
 import { formatCountries } from "../../data";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { SearchType } from "../../types";
 import Alert from "../Alert/Alert";
+import type { City } from "../../hooks/useWeather";
 
 type FormProps = {
-  fetchWeather: (search: SearchType) => Promise<void>
+  fetchWeather: (search: SearchType) => Promise<void>;
+  cities: City;
 };
 
-const Form = ({ fetchWeather }: FormProps) => {
+const Form = ({ fetchWeather, cities }: FormProps) => {
+  
+  useEffect(() => {
+    console.log(cities);
+  }, [cities]);
+
   const [search, setSearch] = useState<SearchType>({
     city: "",
     country: "",

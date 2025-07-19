@@ -4,8 +4,6 @@ import type { SearchType } from "../types";
 import { getTemp } from "../helpers";
 import { useState } from "react";
 
-
-
 //Zod : zod va a INFERIR el type que genera el schema.
 //1.Creamos el schema fijandonos la estructura de la api.
 
@@ -41,10 +39,31 @@ const GeoSchema = z.array(
   })
 );
 
+const CitiSchema = z.array(
+  z.object({
+    city: z.string(),
+    country: z.string(),
+    countryCode: z.string(),
+    id: z.number(),
+    latitude: z.number(),
+    longitude: z.number(),
+    name: z.string(),
+    population: z.number(),
+    region: z.string(),
+    regionCode: z.string(),
+    regionWdId: z.string(),
+    type: z.string(),
+    wikiDataId: z.string(),
+  })
+);
+
+export type City = z.infer<typeof CitiSchema>
+
 export default function useWeather() {
   const [weatherSate, setWeather] = useState<Weather | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [cities, setCities] = useState<City>([]);
 
   //recibe search de tipo SearchType por lo tanto ya es un Objeto, no necesita {}.
   const fetchWeather = async (search: SearchType) => {
@@ -55,25 +74,35 @@ export default function useWeather() {
     // encodeURIComponent(search.city) --> para enviar parametros por la URL. Reemplaza caraceteres especiales por otros que no afecten la consulta. Ej: 'las vegas' tiene un espacio y eso rompe la consulta, esta funcion lo reemplaza con otros caracteres que hace que la api las reconozca y devuelva el resultado
     //  console.log('encode',search.city, encodeURI(search.city));
 
-// rapidAPI
-const options = {
-  method: 'GET',
-  url: 'https://wft-geo-db.p.rapidapi.com/v1/geo/cities',
-  params: {countryIds: `${search.country}`, limit:10, minPopulation: 500000, type: 'CITY', sort:'-population'},
-  headers: {
-    'x-rapidapi-key': 'da81a68529msh80b3f345aec3c13p18abfbjsnf8ada1240185',
-    'x-rapidapi-host': 'wft-geo-db.p.rapidapi.com'
-  }
-};
+    // rapidAPI
+    const options = {
+      method: "GET",
+      url: "https://wft-geo-db.p.rapidapi.com/v1/geo/cities",
+      params: { countryIds: `${search.country}`, limit: 10, sort:'-population'},
+      headers: {
+        "x-rapidapi-key": "da81a68529msh80b3f345aec3c13p18abfbjsnf8ada1240185",
+        "x-rapidapi-host": "wft-geo-db.p.rapidapi.com",
+      },
+    };
 
-try {
-	const response = await axios.request(options);
-	console.log(response.data);
-} catch (error) {
-	console.error(error);
-}
+    try {
+      const response = await axios.request(options);
+      console.log(response.data);
 
-//RapidApi
+      //Filtrar por ciudades mas relevantes
+      const parsedCities = CitiSchema.safeParse(response.data.data);
+      
+
+      if(parsedCities.success){
+        const cities =parsedCities.data.filter(place => place.type === "CITY").sort((a,b)=> b.population - a.population);
+        setCities(cities)
+      }
+
+    } catch (error) {
+      console.error(error);
+    }
+
+    //RapidApi
 
     try {
       const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(search.city)},${
@@ -83,9 +112,9 @@ try {
       const res = await axios(geoUrl); // res es ANY, fijate el "schema" que devuelve te doy una pista, es un OBJETO jeje, y la propiedad data es un ARRAY de OBJETOS por lo tanto, el schema es un array y las propiedades lat y lon son number.
 
       // validación lógica: ciudad no encontrada
-      if(!res.data.length){
-         setError(true);
-         return
+      if (!res.data.length) {
+        setError(true);
+        return;
       }
 
       const parsedGeo = GeoSchema.safeParse(res.data); //es res.data porque ahi esta lo que queremos, no hice destructuring {data} porque tiene el mismo nombre que la siguiente llamada a la api
@@ -95,7 +124,7 @@ try {
       if (!parsedGeo.success) {
         //si entra aca, no rompe la app--> esa es toda la ventaja de tanta comprobacion.// validación estructural: datos mal formados
         console.log("error", parsedGeo.error.message);
-        setError(true)
+        setError(true);
         return;
       }
       const { lat, lon } = res.data[0];
@@ -133,7 +162,6 @@ try {
       // const tempWeather = getTemp(weatherData); refactor->
 
       setWeather(getTemp(weatherData));
-      
     } catch (error) {
       console.log(error);
     } finally {
@@ -146,6 +174,7 @@ try {
     weatherSate,
     error,
     loading,
+    cities
   };
 }
 
