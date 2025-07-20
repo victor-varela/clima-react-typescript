@@ -5,27 +5,51 @@ import type { SearchType } from "../../types";
 import Alert from "../Alert/Alert";
 import type { City } from "../../hooks/useWeather";
 
+
 type FormProps = {
   fetchWeather: (search: SearchType) => Promise<void>;
+  fetchCity: (search: SearchType) => Promise<void>;
   cities: City;
 };
 
-const Form = ({ fetchWeather, cities }: FormProps) => {
-  
+const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
   useEffect(() => {
     console.log(cities);
   }, [cities]);
 
   const [search, setSearch] = useState<SearchType>({
-    city: "",
-    country: "",
+    city: {
+      id:0,
+      lat: 0,
+      lon: 0,
+    },
+    placeName: "",
   }); //se crean los types en su carpeta y se importan. Se inicializan los valores del obj search
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch({
       ...search,
       [e.target.name]: e.target.value,
     });
+
+    fetchWeather(search);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
+    console.log(e.target.value);
+    const selectedCity = cities.find( city=> city.id === Number (e.target.value) )
+    if(selectedCity){
+      setSearch({
+        ...search,
+        city:{
+          id: selectedCity.id,
+          lat: selectedCity.latitude,
+          lon:selectedCity.longitude
+        }
+      })
+
+    }
+    
   }; //Se usa la tecnica de la abuela. En el input el name es igual al nombre del campo en el obj
 
   //State de Alert para manejo de errores
@@ -34,6 +58,7 @@ const Form = ({ fetchWeather, cities }: FormProps) => {
   //El handleSubmit va con el type infiriendo en el form e=> y hover. Y el viejo truco object.values(obj).includes('')
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log(search);
 
     if (Object.values(search).includes("")) {
       setAlert("todos los campos son obligatorios");
@@ -41,7 +66,7 @@ const Form = ({ fetchWeather, cities }: FormProps) => {
     }
 
     //Paso la validacion. Consultamos la API con el custom hook
-    fetchWeather(search);
+    fetchCity(search);
   };
 
   return (
@@ -51,15 +76,30 @@ const Form = ({ fetchWeather, cities }: FormProps) => {
         {alert && <Alert>{alert}</Alert>}
         <div>
           <label htmlFor="city">Ciudad:</label>
-          <input id="city" type="text" name="city" placeholder="Ciudad" value={search.city} onChange={handleChange} />
+          <input
+            id="city"
+            type="text"
+            name="placeName"
+            placeholder="Ciudad"
+            value={search.placeName}
+            onChange={handleCityChange}
+          />
         </div>
         <div>
-          <label htmlFor="countries">Pais:</label>
+          {/* <label htmlFor="countries">Pais:</label>
           <select id="countries" name="country" value={search.country} onChange={handleChange}>
             <option>--Seleccione un pais--</option>
             {formatCountries.map(country => (
               <option value={country.code} key={country.code}>
                 {country.name}
+              </option>
+            ))}
+          </select> */}
+          <select id="citiesByCountry" name="city" value={search.city.id} onChange={handleChange}>
+            <option>--Seleccione una ciudad--</option>
+            {cities.map(city => (
+              <option value={city.id} key={city.id}>
+                {city.name}, {city.country}
               </option>
             ))}
           </select>

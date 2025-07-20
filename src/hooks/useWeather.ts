@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import { z } from "zod";
 import type { SearchType } from "../types";
 import { getTemp } from "../helpers";
@@ -49,15 +49,15 @@ const CitiSchema = z.array(
     longitude: z.number(),
     name: z.string(),
     population: z.number(),
-    region: z.string(),
-    regionCode: z.string(),
-    regionWdId: z.string(),
+    region: z.string().optional(),
+    regionCode: z.string().optional(),
+    regionWdId: z.string().optional(),
     type: z.string(),
     wikiDataId: z.string(),
   })
 );
 
-export type City = z.infer<typeof CitiSchema>
+export type City = z.infer<typeof CitiSchema>;
 
 export default function useWeather() {
   const [weatherSate, setWeather] = useState<Weather | null>(null);
@@ -67,18 +67,20 @@ export default function useWeather() {
 
   //recibe search de tipo SearchType por lo tanto ya es un Objeto, no necesita {}.
   const fetchWeather = async (search: SearchType) => {
+    console.log(search.placeName);
+
     const apiKey = import.meta.env.VITE_API_KEY;
-    setLoading(true);
+
     setWeather(null);
     setError(false);
     // encodeURIComponent(search.city) --> para enviar parametros por la URL. Reemplaza caraceteres especiales por otros que no afecten la consulta. Ej: 'las vegas' tiene un espacio y eso rompe la consulta, esta funcion lo reemplaza con otros caracteres que hace que la api las reconozca y devuelva el resultado
     //  console.log('encode',search.city, encodeURI(search.city));
 
-    // rapidAPI
+    // <rapidAPI
     const options = {
       method: "GET",
       url: "https://wft-geo-db.p.rapidapi.com/v1/geo/cities",
-      params: { countryIds: `${search.country}`, limit: 10, sort:'-population'},
+      params: { namePrefix: `${search.placeName}`, sort: "-population" },
       headers: {
         "x-rapidapi-key": "da81a68529msh80b3f345aec3c13p18abfbjsnf8ada1240185",
         "x-rapidapi-host": "wft-geo-db.p.rapidapi.com",
@@ -91,46 +93,60 @@ export default function useWeather() {
 
       //Filtrar por ciudades mas relevantes
       const parsedCities = CitiSchema.safeParse(response.data.data);
-      
+      console.log(parsedCities);
 
-      if(parsedCities.success){
-        const cities =parsedCities.data.filter(place => place.type === "CITY").sort((a,b)=> b.population - a.population);
-        setCities(cities)
+      if (parsedCities.success) {
+        const cities = parsedCities.data
+          .filter(place => place.type === "CITY")
+          .sort((a, b) => b.population - a.population);
+        console.log(cities);
+
+        setCities(cities);
       }
-
     } catch (error) {
       console.error(error);
     }
 
-    //RapidApi
+    //RapidApi />
+  };
+
+  const fetchCity = async (search: SearchType) => {
+    console.log(search);
+
+    const apiKey = import.meta.env.VITE_API_KEY;
+    setLoading(true);
+    setWeather(null);
+    setError(false);
 
     try {
-      const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(search.city)},${
-        search.country
-      }&appid=${apiKey}`;
+      // const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(search.city.name)},${
+      //   search.city.country
+      // }&appid=${apiKey}`;
 
-      const res = await axios(geoUrl); // res es ANY, fijate el "schema" que devuelve te doy una pista, es un OBJETO jeje, y la propiedad data es un ARRAY de OBJETOS por lo tanto, el schema es un array y las propiedades lat y lon son number.
+      // const res = await axios(geoUrl); // res es ANY, fijate el "schema" que devuelve te doy una pista, es un OBJETO jeje, y la propiedad data es un ARRAY de OBJETOS por lo tanto, el schema es un array y las propiedades lat y lon son number.
 
-      // validación lógica: ciudad no encontrada
-      if (!res.data.length) {
-        setError(true);
-        return;
-      }
+      // // validación lógica: ciudad no encontrada
+      // if (!res.data.length) {
+      //   setError(true);
+      //   return;
+      // }
 
-      const parsedGeo = GeoSchema.safeParse(res.data); //es res.data porque ahi esta lo que queremos, no hice destructuring {data} porque tiene el mismo nombre que la siguiente llamada a la api
+      // const parsedGeo = GeoSchema.safeParse(res.data); //es res.data porque ahi esta lo que queremos, no hice destructuring {data} porque tiene el mismo nombre que la siguiente llamada a la api
 
-      //Zod verifica que este correcto el schema, lat y lon son number. Hicimos todo eso para hacer el if success.
+      // //Zod verifica que este correcto el schema, lat y lon son number. Hicimos todo eso para hacer el if success.
 
-      if (!parsedGeo.success) {
-        //si entra aca, no rompe la app--> esa es toda la ventaja de tanta comprobacion.// validación estructural: datos mal formados
-        console.log("error", parsedGeo.error.message);
-        setError(true);
-        return;
-      }
-      const { lat, lon } = res.data[0];
+      // if (!parsedGeo.success) {
+      //   //si entra aca, no rompe la app--> esa es toda la ventaja de tanta comprobacion.// validación estructural: datos mal formados
+      //   console.log("error", parsedGeo.error.message);
+      //   setError(true);
+      //   return;
+      // }
+      // const { lat, lon } = res.data[0];
 
-      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&lang=es`;
+      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${search.city.lat}&lon=${search.city.lon}&appid=${apiKey}&lang=es`;
       const { data } = await axios(weatherUrl);
+      console.log(data);
+
       const result = Weather.safeParse(data); //zod .safeParse()--> aca Zod verifica
 
       //Poder hacer esta comprobacion (este if) es la RAZON para usar Zod. Si no cumple entonces tenemos oportunidad de MANEJAR el error --> enviar una alerta o lo que sea y la App sigue FUNCIONANDO.
@@ -163,7 +179,9 @@ export default function useWeather() {
 
       setWeather(getTemp(weatherData));
     } catch (error) {
-      console.log(error);
+      if (isAxiosError(error)) {
+        console.error(error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -171,10 +189,11 @@ export default function useWeather() {
 
   return {
     fetchWeather,
+    fetchCity,
     weatherSate,
     error,
     loading,
-    cities
+    cities,
   };
 }
 
