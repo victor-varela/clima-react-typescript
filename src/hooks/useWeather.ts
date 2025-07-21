@@ -1,6 +1,6 @@
 import axios, { isAxiosError } from "axios";
 import { z } from "zod";
-import type { SearchType } from "../types";
+import type { CityName, SearchType } from "../types";
 import { getTemp } from "../helpers";
 import { useState } from "react";
 
@@ -66,9 +66,10 @@ export default function useWeather() {
   const [cities, setCities] = useState<City>([]);
 
   //recibe search de tipo SearchType por lo tanto ya es un Objeto, no necesita {}.
-  const fetchWeather = async (search: SearchType) => {
-    console.log(search.placeName);
+  const fetchWeather = async (city: CityName) => {
+    console.log(city);
 
+    
     const apiKey = import.meta.env.VITE_API_KEY;
 
     setWeather(null);
@@ -76,38 +77,40 @@ export default function useWeather() {
     // encodeURIComponent(search.city) --> para enviar parametros por la URL. Reemplaza caraceteres especiales por otros que no afecten la consulta. Ej: 'las vegas' tiene un espacio y eso rompe la consulta, esta funcion lo reemplaza con otros caracteres que hace que la api las reconozca y devuelva el resultado
     //  console.log('encode',search.city, encodeURI(search.city));
 
-    // <rapidAPI
-    const options = {
-      method: "GET",
-      url: "https://wft-geo-db.p.rapidapi.com/v1/geo/cities",
-      params: { namePrefix: `${search.placeName}`, sort: "-population" },
-      headers: {
-        "x-rapidapi-key": "da81a68529msh80b3f345aec3c13p18abfbjsnf8ada1240185",
-        "x-rapidapi-host": "wft-geo-db.p.rapidapi.com",
-      },
-    };
+    if (Object.values(city.name).length > 2) {
+      // <rapidAPI
+      const options = {
+        method: "GET",
+        url: "https://wft-geo-db.p.rapidapi.com/v1/geo/cities",
+        params: { namePrefix: `${city.name}`, sort: "-population" },
+        headers: {
+          "x-rapidapi-key": "da81a68529msh80b3f345aec3c13p18abfbjsnf8ada1240185",
+          "x-rapidapi-host": "wft-geo-db.p.rapidapi.com",
+        },
+      };
 
-    try {
-      const response = await axios.request(options);
-      console.log(response.data);
+      try {
+        const response = await axios.request(options);
+        console.log(response.data);
 
-      //Filtrar por ciudades mas relevantes
-      const parsedCities = CitiSchema.safeParse(response.data.data);
-      console.log(parsedCities);
+        //Filtrar por ciudades mas relevantes
+        const parsedCities = CitiSchema.safeParse(response.data.data);
+        console.log(parsedCities);
 
-      if (parsedCities.success) {
-        const cities = parsedCities.data
-          .filter(place => place.type === "CITY")
-          .sort((a, b) => b.population - a.population);
-        console.log(cities);
+        if (parsedCities.success) {
+          const cities = parsedCities.data
+            .filter(place => place.type === "CITY")
+            .sort((a, b) => b.population - a.population);
+          console.log(cities);
 
-        setCities(cities);
+          setCities(cities);
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
-    }
 
-    //RapidApi />
+      //RapidApi />
+    }
   };
 
   const fetchCity = async (search: SearchType) => {

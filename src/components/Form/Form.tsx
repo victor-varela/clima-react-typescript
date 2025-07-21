@@ -1,13 +1,12 @@
 import styles from "./Form.module.css";
 import { formatCountries } from "../../data";
 import { useEffect, useState } from "react";
-import type { SearchType } from "../../types";
+import type { CityName,  SearchType } from "../../types";
 import Alert from "../Alert/Alert";
 import type { City } from "../../hooks/useWeather";
 
-
 type FormProps = {
-  fetchWeather: (search: SearchType) => Promise<void>;
+  fetchWeather: (city: CityName) => Promise<void>;
   fetchCity: (search: SearchType) => Promise<void>;
   cities: City;
 };
@@ -17,39 +16,35 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
     console.log(cities);
   }, [cities]);
 
+  const [city, setCity] = useState<CityName>({name:""})
+
   const [search, setSearch] = useState<SearchType>({
     city: {
-      id:0,
+      id: 0,
       lat: 0,
       lon: 0,
-    },
-    placeName: "",
+    }
   }); //se crean los types en su carpeta y se importan. Se inicializan los valores del obj search
 
-  const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch({
-      ...search,
-      [e.target.name]: e.target.value,
-    });
 
-    fetchWeather(search);
+  const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+   setCity({...city,[e.target.name]: e.target.value})
+    fetchWeather(city)
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
     console.log(e.target.value);
-    const selectedCity = cities.find( city=> city.id === Number (e.target.value) )
-    if(selectedCity){
+    const selectedCity = cities.find(city => city.id === Number(e.target.value));
+    if (selectedCity) {
       setSearch({
         ...search,
-        city:{
+        city: {
           id: selectedCity.id,
           lat: selectedCity.latitude,
-          lon:selectedCity.longitude
-        }
-      })
-
+          lon: selectedCity.longitude,
+        },
+      });
     }
-    
   }; //Se usa la tecnica de la abuela. En el input el name es igual al nombre del campo en el obj
 
   //State de Alert para manejo de errores
@@ -60,10 +55,7 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
     e.preventDefault();
     console.log(search);
 
-    if (Object.values(search).includes("")) {
-      setAlert("todos los campos son obligatorios");
-      return;
-    }
+  
 
     //Paso la validacion. Consultamos la API con el custom hook
     fetchCity(search);
@@ -79,9 +71,9 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
           <input
             id="city"
             type="text"
-            name="placeName"
+            name="name"
             placeholder="Ciudad"
-            value={search.placeName}
+            value={city.name}
             onChange={handleCityChange}
           />
         </div>

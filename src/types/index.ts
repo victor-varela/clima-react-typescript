@@ -4,8 +4,9 @@ export type SearchType = {
     lat: number;
     lon: number;
   };
-  placeName: string;
 };
+
+export type CityName = { name: string };
 
 export type Country = {
   code: string;
