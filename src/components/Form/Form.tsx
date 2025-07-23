@@ -6,8 +6,8 @@ import Alert from "../Alert/Alert";
 import type { City } from "../../hooks/useWeather";
 
 type FormProps = {
-  fetchWeather: (city: CityName) => Promise<void>;
-  fetchCity: (search: SearchType) => Promise<void>;
+  fetchWeather: (search: SearchType) => Promise<void>;
+  fetchCity: (city: CityName) => Promise<void>;
   cities: City;
 };
 
@@ -29,12 +29,12 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
 
   const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
    setCity({...city,[e.target.name]: e.target.value})
-    fetchWeather(city)
+    fetchCity(city)
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
-    console.log(e.target.value);
-    const selectedCity = cities.find(city => city.id === Number(e.target.value));
+  const handleChange = (id: number) => {
+    console.log(id);
+    const selectedCity = cities.find(city => city.id === (id));
     if (selectedCity) {
       setSearch({
         ...search,
@@ -45,6 +45,9 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
         },
       });
     }
+
+    fetchWeather(search);
+    setCity({name:""})
   }; //Se usa la tecnica de la abuela. En el input el name es igual al nombre del campo en el obj
 
   //State de Alert para manejo de errores
@@ -55,10 +58,9 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
     e.preventDefault();
     console.log(search);
 
-  
-
     //Paso la validacion. Consultamos la API con el custom hook
-    fetchCity(search);
+    fetchWeather(search);
+    setCity({name:""})
   };
 
   return (
@@ -87,18 +89,18 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
               </option>
             ))}
           </select> */}
-          <select id="citiesByCountry" name="city" value={search.city.id} onChange={handleChange}>
-            <option>--Seleccione una ciudad--</option>
+          <div id="citiesByCountry" name="city" value={search.city.id} >
+            {/* <option>--Seleccione una ciudad--</option> */}
             {cities.map(city => (
-              <option value={city.id} key={city.id}>
+              <p value={city.id} key={city.id} onClick={()=>handleChange(city.id)}>
                 {city.name}, {city.country}
-              </option>
+              </p>
             ))}
-          </select>
+          </div>
         </div>
-        <div>
+        {/* <div>
           <input type="submit" value="Consultar Clima" />
-        </div>
+        </div> */}
       </form>
     </>
   );

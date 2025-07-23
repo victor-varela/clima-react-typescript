@@ -66,7 +66,7 @@ export default function useWeather() {
   const [cities, setCities] = useState<City>([]);
 
   //recibe search de tipo SearchType por lo tanto ya es un Objeto, no necesita {}.
-  const fetchWeather = async (city: CityName) => {
+  const fetchCity = async (city: CityName) => {
     console.log(city);
 
     
@@ -113,7 +113,7 @@ export default function useWeather() {
     }
   };
 
-  const fetchCity = async (search: SearchType) => {
+  const fetchWeather = async (search: SearchType) => {
     console.log(search);
 
     const apiKey = import.meta.env.VITE_API_KEY;
