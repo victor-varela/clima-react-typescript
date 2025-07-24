@@ -12,9 +12,6 @@ type FormProps = {
 };
 
 const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
-  useEffect(() => {
-    console.log(cities);
-  }, [cities]);
 
   const [city, setCity] = useState<CityName>({name:""})
 
@@ -36,18 +33,17 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
     console.log(id);
     const selectedCity = cities.find(city => city.id === (id));
     if (selectedCity) {
-      setSearch({
-        ...search,
+      const newSearch={
         city: {
           id: selectedCity.id,
           lat: selectedCity.latitude,
           lon: selectedCity.longitude,
         },
-      });
+      };
+      fetchWeather(newSearch);
+      setCity({name:""})
     }
-
-    fetchWeather(search);
-    setCity({name:""})
+    
   }; //Se usa la tecnica de la abuela. En el input el name es igual al nombre del campo en el obj
 
   //State de Alert para manejo de errores
@@ -89,10 +85,10 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
               </option>
             ))}
           </select> */}
-          <div id="citiesByCountry" name="city" value={search.city.id} >
+          <div id="citiesByCountry"  >
             {/* <option>--Seleccione una ciudad--</option> */}
             {cities.map(city => (
-              <p value={city.id} key={city.id} onClick={()=>handleChange(city.id)}>
+              <p  key={city.id} onClick={()=>handleChange(city.id)}>
                 {city.name}, {city.country}
               </p>
             ))}

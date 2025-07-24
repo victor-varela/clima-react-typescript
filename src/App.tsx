@@ -1,11 +1,13 @@
 import styles from "./App.module.css";
 import Form from "./components/Form/Form";
-import useWeather from "./hooks/useWeather";
+import useWeather, { type Weather } from "./hooks/useWeather";
 import Error from "./components/Error/Error";
 import WeatherDetails from "./components/WeatherDetails/WeatherDetails";
 import { Spinner } from "./components/Spinner/Spinner";
 function App() {
   const { fetchWeather,fetchCity ,weatherSate, error, loading, cities } = useWeather();
+
+console.log(weatherSate);
 
   return (
     <>

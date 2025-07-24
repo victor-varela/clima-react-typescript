@@ -67,11 +67,7 @@ export default function useWeather() {
 
   //recibe search de tipo SearchType por lo tanto ya es un Objeto, no necesita {}.
   const fetchCity = async (city: CityName) => {
-    console.log(city);
-
     
-    const apiKey = import.meta.env.VITE_API_KEY;
-
     setWeather(null);
     setError(false);
     // encodeURIComponent(search.city) --> para enviar parametros por la URL. Reemplaza caraceteres especiales por otros que no afecten la consulta. Ej: 'las vegas' tiene un espacio y eso rompe la consulta, esta funcion lo reemplaza con otros caracteres que hace que la api las reconozca y devuelva el resultado
