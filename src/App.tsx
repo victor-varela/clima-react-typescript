@@ -1,13 +1,10 @@
 import styles from "./App.module.css";
 import Form from "./components/Form/Form";
-import useWeather, { type Weather } from "./hooks/useWeather";
-import Error from "./components/Error/Error";
+import useWeather from "./hooks/useWeather";
 import WeatherDetails from "./components/WeatherDetails/WeatherDetails";
 import { Spinner } from "./components/Spinner/Spinner";
 function App() {
-  const { fetchWeather,fetchCity ,weatherSate, error, loading, cities } = useWeather();
-
-console.log(weatherSate);
+  const { fetchWeather,fetchCity ,weatherSate, loading, cities } = useWeather();
 
   return (
     <>
@@ -16,7 +13,6 @@ console.log(weatherSate);
         <Form fetchWeather={fetchWeather} cities={cities} fetchCity={fetchCity} />
         {loading && <Spinner />}
         {weatherSate && <WeatherDetails weather={weatherSate} />}
-        {error && <Error />}
       </div>
     </>
   );
