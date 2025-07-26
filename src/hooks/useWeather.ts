@@ -65,22 +65,21 @@ export default function useWeather() {
   const [loading, setLoading] = useState(false);
   const [cities, setCities] = useState<City>([]);
 
-  //recibe search de tipo SearchType por lo tanto ya es un Objeto, no necesita {}.
   const fetchCity = async (city: CityName) => {
-    
     setWeather(null);
     setError(false);
-    // encodeURIComponent(search.city) --> para enviar parametros por la URL. Reemplaza caraceteres especiales por otros que no afecten la consulta. Ej: 'las vegas' tiene un espacio y eso rompe la consulta, esta funcion lo reemplaza con otros caracteres que hace que la api las reconozca y devuelva el resultado
-    //  console.log('encode',search.city, encodeURI(search.city));
 
     if (Object.values(city.name).length > 2) {
       // <rapidAPI
+      const rapidApiKey = import.meta.env.VITE_RAPID_API_KEY
+      console.log(rapidApiKey);
+      
       const options = {
         method: "GET",
         url: "https://wft-geo-db.p.rapidapi.com/v1/geo/cities",
         params: { namePrefix: `${city.name}`, sort: "-population" },
         headers: {
-          "x-rapidapi-key": "da81a68529msh80b3f345aec3c13p18abfbjsnf8ada1240185",
+          "x-rapidapi-key":rapidApiKey,
           "x-rapidapi-host": "wft-geo-db.p.rapidapi.com",
         },
       };
@@ -110,38 +109,12 @@ export default function useWeather() {
   };
 
   const fetchWeather = async (search: SearchType) => {
-    console.log(search);
-
     const apiKey = import.meta.env.VITE_API_KEY;
     setLoading(true);
     setWeather(null);
     setError(false);
 
     try {
-      // const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(search.city.name)},${
-      //   search.city.country
-      // }&appid=${apiKey}`;
-
-      // const res = await axios(geoUrl); // res es ANY, fijate el "schema" que devuelve te doy una pista, es un OBJETO jeje, y la propiedad data es un ARRAY de OBJETOS por lo tanto, el schema es un array y las propiedades lat y lon son number.
-
-      // // validación lógica: ciudad no encontrada
-      // if (!res.data.length) {
-      //   setError(true);
-      //   return;
-      // }
-
-      // const parsedGeo = GeoSchema.safeParse(res.data); //es res.data porque ahi esta lo que queremos, no hice destructuring {data} porque tiene el mismo nombre que la siguiente llamada a la api
-
-      // //Zod verifica que este correcto el schema, lat y lon son number. Hicimos todo eso para hacer el if success.
-
-      // if (!parsedGeo.success) {
-      //   //si entra aca, no rompe la app--> esa es toda la ventaja de tanta comprobacion.// validación estructural: datos mal formados
-      //   console.log("error", parsedGeo.error.message);
-      //   setError(true);
-      //   return;
-      // }
-      // const { lat, lon } = res.data[0];
-
       const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${search.city.lat}&lon=${search.city.lon}&appid=${apiKey}&lang=es`;
       const { data } = await axios(weatherUrl);
       console.log(data);
