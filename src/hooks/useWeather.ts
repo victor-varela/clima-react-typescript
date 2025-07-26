@@ -32,12 +32,6 @@ export type Weather = z.infer<typeof Weather>;
 
 //Creamos el schema de lat y lon. Son propiedades de tipo number dentro de un array. Eso lo ves logeando la respuesta ves que toda la respuesta es un objeto PERO, lo que quieres tipar, validar, es la propiedad data. data es un array de objetos. por eso el schema es un array de objeto.
 
-const GeoSchema = z.array(
-  z.object({
-    lat: z.number(),
-    lon: z.number(),
-  })
-);
 
 const CitiSchema = z.array(
   z.object({
