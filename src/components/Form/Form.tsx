@@ -42,7 +42,7 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
         },
       });
 
-      setCity({ name: "" });
+      setCity({ name: selectedCity.name });
     }
   }; //Se usa la tecnica de la abuela. En el input el name es igual al nombre del campo en el obj
 
@@ -55,7 +55,6 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
         </div>
         <div>
           <div id="citiesByCountry" className={styles.citiesByCountry}>
-            {/* <option>--Seleccione una ciudad--</option> */}
             {cities.map(city => (
               <p key={city.id} onClick={() => handleClick(city.id)}>
                 {city.name}, {city.country}

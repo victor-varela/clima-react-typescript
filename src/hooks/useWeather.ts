@@ -106,6 +106,7 @@ export default function useWeather() {
     const apiKey = import.meta.env.VITE_API_KEY;
     setLoading(true);
     setWeather(null);
+    setCities([]);
     setError(false);
 
     try {
