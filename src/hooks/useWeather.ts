@@ -1,8 +1,8 @@
 import axios, { isAxiosError } from "axios";
-import { z } from "zod";
+import { string, z } from "zod";
 import type { CityName, SearchType } from "../types";
 import { getTemp } from "../helpers";
-import { useState } from "react";
+import { use, useState } from "react";
 
 //Zod : zod va a INFERIR el type que genera el schema.
 //1.Creamos el schema fijandonos la estructura de la api.
@@ -58,6 +58,7 @@ export default function useWeather() {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cities, setCities] = useState<City>([]);
+  const [selectedCity, setSelectedCity] = useState<string>("")
 
   const fetchCity = async (city: CityName) => {
     setWeather(null);
@@ -66,7 +67,6 @@ export default function useWeather() {
     if (Object.values(city.name).length > 2) {
       // <rapidAPI
       const rapidApiKey = import.meta.env.VITE_RAPID_API_KEY
-      console.log(rapidApiKey);
       
       const options = {
         method: "GET",
@@ -145,6 +145,7 @@ export default function useWeather() {
       // const tempWeather = getTemp(weatherData); refactor->
 
       setWeather(getTemp(weatherData));
+      setSelectedCity(search.city.name)
     } catch (error) {
       if (isAxiosError(error)) {
         console.error(error.message);
@@ -161,6 +162,7 @@ export default function useWeather() {
     error,
     loading,
     cities,
+    selectedCity
   };
 }
 

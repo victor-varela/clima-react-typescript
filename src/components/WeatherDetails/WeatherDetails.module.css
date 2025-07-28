@@ -10,6 +10,11 @@
 .title {
   text-align: center;
   font-size: 2rem;
+}
+
+.sub_title {
+  text-align: center;
+  font-size: 1.5rem;
   text-transform: capitalize;
 }
 
@@ -54,25 +59,24 @@
     gap: 0;
   }
 
-  .container__temp{
+  .container__temp {
     justify-content: space-between;
     margin-top: 1rem;
   }
 
-  .container__temp p{
+  .container__temp p {
     text-align: center;
   }
-  
-  .title{
+
+  .title {
     font-size: 2rem;
   }
 
-  .container__main{
+  .container__main {
     gap: 1rem;
   }
 
-  .main__p{
+  .main__p {
     font-size: 3rem;
   }
-
 }

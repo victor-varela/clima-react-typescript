@@ -4,7 +4,7 @@ import useWeather from "./hooks/useWeather";
 import WeatherDetails from "./components/WeatherDetails/WeatherDetails";
 import { Spinner } from "./components/Spinner/Spinner";
 function App() {
-  const { fetchWeather,fetchCity ,weatherSate, loading, cities } = useWeather();
+  const { fetchWeather,fetchCity ,weatherSate, loading, cities, selectedCity } = useWeather();
 
   return (
     <>
@@ -12,7 +12,7 @@ function App() {
       <div className={styles.container}>
         <Form fetchWeather={fetchWeather} cities={cities} fetchCity={fetchCity} />
         {loading && <Spinner />}
-        {weatherSate && <WeatherDetails weather={weatherSate} />}
+        {weatherSate && <WeatherDetails weather={weatherSate} selectedCity={selectedCity} />}
       </div>
     </>
   );

@@ -1,11 +1,11 @@
 import type { Weather } from "../../hooks/useWeather";
 import styles from "./WeatherDetails.module.css";
 
-const WeatherDetails = ({ weather }: { weather: Weather }) => {
-  
+const WeatherDetails = ({ weather, selectedCity }: { weather: Weather; selectedCity: string }) => {
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>{weather.weather[0].description}</h1>
+      <h1 className={styles.title}>Clima de {selectedCity}</h1>
+      <h2 className={styles.sub_title}>{weather.weather[0].description}</h2>
       <div className={styles.container__main}>
         <p className={styles.main__p}>{weather.main.temp}°C</p>
       </div>

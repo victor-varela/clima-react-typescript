@@ -17,6 +17,7 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
       id: 0,
       lat: 0,
       lon: 0,
+      name:""
     },
   }); //se crean los types en su carpeta y se importan. Se inicializan los valores del obj search
 
@@ -31,7 +32,6 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
   };
 
   const handleClick = (id: number) => {
-    console.log(id);
     const selectedCity = cities.find(city => city.id === id);
     if (selectedCity) {
       setSearch({
@@ -39,6 +39,7 @@ const Form = ({ fetchWeather, cities, fetchCity }: FormProps) => {
           id: selectedCity.id,
           lat: selectedCity.latitude,
           lon: selectedCity.longitude,
+          name:selectedCity.name
         },
       });
 

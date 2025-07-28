@@ -3,6 +3,7 @@ export type SearchType = {
     id: number;
     lat: number;
     lon: number;
+    name: string;
   };
 };
 
