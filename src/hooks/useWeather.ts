@@ -1,8 +1,8 @@
 import axios, { isAxiosError } from "axios";
-import { string, z } from "zod";
+import { z } from "zod";
 import type { CityName, SearchType } from "../types";
 import { getTemp } from "../helpers";
-import { use, useState } from "react";
+import { useState } from "react";
 
 //Zod : zod va a INFERIR el type que genera el schema.
 //1.Creamos el schema fijandonos la estructura de la api.
@@ -32,7 +32,6 @@ export type Weather = z.infer<typeof Weather>;
 
 //Creamos el schema de lat y lon. Son propiedades de tipo number dentro de un array. Eso lo ves logeando la respuesta ves que toda la respuesta es un objeto PERO, lo que quieres tipar, validar, es la propiedad data. data es un array de objetos. por eso el schema es un array de objeto.
 
-
 const CitiSchema = z.array(
   z.object({
     city: z.string(),
@@ -58,7 +57,7 @@ export default function useWeather() {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cities, setCities] = useState<City>([]);
-  const [selectedCity, setSelectedCity] = useState<string>("")
+  const [selectedCity, setSelectedCity] = useState<string>("");
 
   const fetchCity = async (city: CityName) => {
     setWeather(null);
@@ -66,14 +65,14 @@ export default function useWeather() {
 
     if (Object.values(city.name).length > 2) {
       // <rapidAPI
-      const rapidApiKey = import.meta.env.VITE_RAPID_API_KEY
-      
+      const rapidApiKey = import.meta.env.VITE_RAPID_API_KEY;
+
       const options = {
         method: "GET",
         url: "https://wft-geo-db.p.rapidapi.com/v1/geo/cities",
         params: { namePrefix: `${city.name}`, sort: "-population" },
         headers: {
-          "x-rapidapi-key":rapidApiKey,
+          "x-rapidapi-key": rapidApiKey,
           "x-rapidapi-host": "wft-geo-db.p.rapidapi.com",
         },
       };
@@ -145,7 +144,7 @@ export default function useWeather() {
       // const tempWeather = getTemp(weatherData); refactor->
 
       setWeather(getTemp(weatherData));
-      setSelectedCity(search.city.name)
+      setSelectedCity(search.city.name);
     } catch (error) {
       if (isAxiosError(error)) {
         console.error(error.message);
@@ -162,7 +161,7 @@ export default function useWeather() {
     error,
     loading,
     cities,
-    selectedCity
+    selectedCity,
   };
 }
 
